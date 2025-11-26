@@ -1,0 +1,68 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Binance Delta Predictor — Upgraded</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Binance Delta Predictor — Upgraded</h1>
+    <p>Symbols: {% for s in symbols %} <strong>{{s}}</strong> {% endfor %}</p>
+    <div id="lastUpdated">Last update: --</div>
+    <div id="cards"></div>
+    <div id="pending" class="card"></div>
+    <div id="stats" class="card small"></div>
+  </div>
+
+<script>
+async function fetchStatus(){
+  try{
+    const res = await fetch('/status');
+    const j = await res.json();
+    document.getElementById('lastUpdated').innerText = 'Last update: ' + new Date().toLocaleTimeString();
+    const cards = document.getElementById('cards');
+    cards.innerHTML = '';
+    for(const sym in j.symbols){
+      const agg = j.symbols[sym];
+      let html = `<div class="card"><h2>${sym}</h2>`;
+      if(!agg){
+        html += '<p>No trades recently.</p></div>';
+      } else {
+        const color = agg.close > agg.open ? 'green' : (agg.close < agg.open ? 'red' : 'grey');
+        html += `<div class="candle ${color}"></div>
+                 <p><b>Signal (last):</b> ${agg.delta ? (agg.delta>=0 ? 'Positive delta' : 'Negative delta') : '0'}</p>
+                 <p><b>Delta:</b> ${agg.delta.toFixed(6)}</p>
+                 <p><b>Agg Buy:</b> ${agg.aggressive_buy.toFixed(6)} &nbsp; <b>Agg Sell:</b> ${agg.aggressive_sell.toFixed(6)}</p>
+                 <p><b>Open:</b> ${agg.open} &nbsp; <b>Close:</b> ${agg.close}</p>
+                 </div>`;
+      }
+      cards.innerHTML += html;
+    }
+    // pending
+    const pending = document.getElementById('pending');
+    pending.innerHTML = '<h3>Recent Predictions (latest first)</h3>';
+    for(const p of j.pending.slice(0,20)){
+      pending.innerHTML += `<div class="pred ${p.evaluated? (p.win? 'win':'loss') : 'pending'}">
+        <b>${p.symbol.toUpperCase()}</b> | Predict @ ${new Date(p.predict_time_ms).toLocaleTimeString()} -> <b>${p.signal}</b>
+        <div>${p.reason}</div>
+        ${p.evaluated ? `<div>Result: ${p.eval_result} (win: ${p.win})</div>` : '<div>Awaiting evaluation...</div>'}
+      </div>`;
+    }
+    // stats
+    let statsHtml = '<h3>Stats</h3>';
+    for(const s in j.stats){
+      const st = j.stats[s];
+      statsHtml += `<div><b>${s}</b> Signals: ${st.signals} Wins: ${st.wins} Losses: ${st.losses}</div>`;
+    }
+    document.getElementById('stats').innerHTML = statsHtml;
+  }catch(e){
+    console.error(e);
+  }
+}
+
+fetchStatus();
+setInterval(fetchStatus, 2000);
+</script>
+</body>
+</html>
