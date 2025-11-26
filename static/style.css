@@ -1,1 +1,11 @@
-
+body { font-family: Arial, sans-serif; background:#071229; color:#e6eef8; text-align:center; }
+.container { max-width:900px; margin:20px auto; padding:10px; }
+.card { background:#0b1b2a; padding:12px; margin:8px; border-radius:8px; display:inline-block; vertical-align:top; width:260px; }
+.small { font-size:14px; }
+.candle { width:40px; height:120px; margin:6px auto; border-radius:4px; }
+.green { background: #2ecc71; }
+.red { background: #e74c3c; }
+.grey { background: #95a5a6; }
+.pred { text-align:left; padding:6px; border-bottom:1px solid rgba(255,255,255,0.03); }
+.pred.win { background: rgba(46,204,113,0.06); }
+.pred.loss { background: rgba(231,76,60,0.06); }
